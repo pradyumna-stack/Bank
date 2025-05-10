@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <cstdio>
+#include <cstring>  
 
 using std::cout;
 using std::cin;
@@ -27,9 +29,25 @@ public:
     void delete_rec();
 };
 
+// Function to auto-generate account number
+int generate_account_number() {
+    int acc_no = 1000; // Starting account number
+    ifstream infile("acc_no.txt");
+    if (infile) {
+        infile >> acc_no;
+        infile.close();
+    }
+    acc_no++; // Increment for next account
+    ofstream outfile("acc_no.txt");
+    outfile << acc_no;
+    outfile.close();
+    return acc_no;
+}
+
 void account_query::read_data() {
-    cout << "\nEnter Account Number: ";
-    cin >> account_number;
+    int acc_num = generate_account_number();
+    snprintf(account_number, sizeof(account_number), "%d", acc_num);
+    cout << "\nGenerated Account Number: " << account_number << endl;
     cout << "Enter First Name: ";
     cin >> firstName;
     cout << "Enter Last Name: ";
@@ -118,7 +136,14 @@ void account_query::edit_rec() {
     iofile.open("record.bank", ios::out | ios::in | ios::binary);
     iofile.seekp((n - 1) * sizeof(*this));
     cout << "\nEnter data to Modify: " << endl;
+    
+    // Retain the same account number
+    char old_acc_num[20];
+    std::strcpy(old_acc_num, account_number);
+
     read_data();
+    std::strcpy(account_number, old_acc_num); // Restore old account number
+
     iofile.write(reinterpret_cast<char*>(this), sizeof(*this));
     iofile.close();
 }
@@ -196,4 +221,3 @@ int main() {
 
     return 0;
 }
-// End of code snippet
